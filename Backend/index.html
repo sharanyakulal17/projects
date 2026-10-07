@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEBULA CORE | AURA-HEAL Autonomous Cloud Control Center</title>
+  
+  <!-- Modern Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-dark: #070b14;
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-hover: rgba(0, 242, 254, 0.3);
+      --accent-cyan: #00f2fe;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --glow-cyan: 0 0 20px rgba(0, 242, 254, 0.25);
+      --glow-danger: 0 0 20px rgba(239, 68, 68, 0.3);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1440px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+    /* Header Bar */
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      padding: 20px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      display: flex; align-items: center; justify-content: center;
+      color: #070b14; font-size: 22px; font-weight: 800;
+      box-shadow: var(--glow-cyan);
+    }
+    .brand-title h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .brand-title p { font-size: 12px; color: var(--text-muted); }
+
+    /* Backend Connection Bar */
+    .url-config-bar {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 8px 14px; border-radius: 30px;
+      border: 1px solid var(--card-border);
+    }
+    .url-config-bar label { font-size: 12px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .url-input {
+      background: transparent; border: none;
+      color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; outline: none; width: 220px;
+    }
+    .btn-connect {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #070b14; border: none; border-radius: 20px;
+      padding: 6px 16px; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn-connect:hover { transform: translateY(-1px); box-shadow: var(--glow-cyan); }
+
+    .status-badge {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      background: rgba(16, 185, 129, 0.15); color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .status-badge.anomaly {
+      background: rgba(239, 68, 68, 0.15); color: var(--danger);
+      border-color: rgba(239, 68, 68, 0.3); box-shadow: var(--glow-danger);
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } }
+
+    /* Layout Grids */
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    @media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Metric Cards */
+    .metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: all 0.2s ease;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .metric-card:hover { border-color: var(--card-border-hover); transform: translateY(-2px); }
+    .metric-header { display: flex; justify-content: space-between; align-items: center; }
+    .metric-title { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    .metric-icon { color: var(--accent-cyan); font-size: 16px; }
+    .metric-value { font-size: 28px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+    .metric-bar-bg { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 3px; overflow: hidden; }
+    .metric-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue)); transition: width 0.5s ease; }
+    .metric-bar-fill.danger { background: linear-gradient(90deg, var(--warning), var(--danger)); }
+
+    /* Main Sections */
+    .section-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .section-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .section-title i { color: var(--accent-cyan); }
+
+    /* Pipeline Progress Tracker */
+    .pipeline-container { display: flex; justify-content: space-between; position: relative; padding: 10px 0; }
+    .pipeline-step { display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 1; flex: 1; text-align: center; }
+    .step-circle {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #0f172a; border: 2px solid var(--text-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: var(--text-muted); transition: all 0.3s ease;
+    }
+    .pipeline-step.active .step-circle { border-color: var(--accent-cyan); color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
+    .pipeline-step.completed .step-circle { border-color: var(--success); background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .step-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+
+    /* Controls & Buttons */
+    .button-group { display: flex; flex-wrap: wrap; gap: 12px; }
+    .btn-action {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 10px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .btn-action:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--accent-cyan); }
+    .btn-action.primary { background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue)); color: #070b14; border: none; }
+    .btn-action.primary:hover { box-shadow: var(--glow-cyan); }
+    .btn-action.danger { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: var(--danger); }
+    .btn-action.danger:hover { background: rgba(239, 68, 68, 0.25); box-shadow: var(--glow-danger); }
+
+    /* VM Grid */
+    .vm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+    .vm-card {
+      background: rgba(0, 0, 0, 0.3); border: 1px solid var(--card-border);
+      border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .vm-card.unhealthy { border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); }
+    .vm-header { display: flex; justify-content: space-between; align-items: center; }
+    .vm-id { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent-cyan); }
+    .vm-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .vm-badge.critical { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+    /* AI RCA Display */
+    .rca-box {
+      background: rgba(0, 0, 0, 0.4); border-left: 4px solid var(--accent-cyan);
+      padding: 16px; border-radius: 0 8px 8px 0; font-size: 13px; color: var(--text-main);
+    }
+
+    /* Chat Copilot */
+    .chat-box { display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding-right: 6px; }
+    .chat-msg { padding: 10px 14px; border-radius: 8px; font-size: 12px; max-width: 85%; }
+    .chat-msg.user { background: rgba(59, 130, 246, 0.2); align-self: flex-end; color: var(--text-main); }
+    .chat-msg.ai { background: rgba(255, 255, 255, 0.06); align-self: flex-start; color: var(--text-main); border: 1px solid var(--card-border); }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--card-border); }
+    th { color: var(--text-muted); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Header & URL Configuration -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="brand-title">
+          <h1>NEBULA CORE / AURA-HEAL</h1>
+          <p>Autonomous Cloud Self-Healing Observability Engine</p>
+        </div>
+      </div>
+
+      <div class="url-config-bar">
+        <label><i class="fa-solid fa-server"></i> Backend URL:</label>
+        <input type="text" id="backendUrlInput" class="url-input" value="http://127.0.0.1:5001" placeholder="http://127.0.0.1:5001">
+        <button class="btn-connect" onclick="connectBackend()"><i class="fa-solid fa-plug"></i> Connect</button>
+      </div>
+
+      <div class="status-badge" id="systemStatusBadge">
+        <span class="status-dot"></span>
+        <span id="systemStatusText">SYSTEM HEALTHY</span>
+      </div>
+    </header>
+
+    <!-- Metrics Cards Grid -->
+    <div class="grid-4">
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">CPU UTILIZATION</span>
+          <i class="fa-solid fa-microchip metric-icon"></i>
+        </div>
+        <div class="metric-value" id="valCpu">--%</div>
+        <div class="metric-bar-bg"><div class="metric-bar-fill" id="barCpu"></div></div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">MEMORY USAGE</span>
+          <i class="fa-solid fa-memory metric-icon"></i>
+        </div>
+        <div class="metric-value" id="valMemory">--%</div>
+        <div class="metric-bar-bg"><div class="metric-bar-fill" id="barMemory"></div></div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">DISK STORAGE</span>
+          <i class="fa-solid fa-hard-drive metric-icon"></i>
+        </div>
+        <div class="metric-value" id="valDisk">--%</div>
+        <div class="metric-bar-bg"><div class="metric-bar-fill" id="barDisk"></div></div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">RESPONSE LATENCY</span>
+          <i class="fa-solid fa-network-wired metric-icon"></i>
+        </div>
+        <div class="metric-value" id="valLatency">-- ms</div>
+        <div class="metric-bar-bg"><div class="metric-bar-fill" id="barLatency"></div></div>
+      </div>
+    </div>
+
+    <!-- Self-Healing Pipeline Progress Tracker -->
+    <div class="section-box">
+      <div class="section-title"><i class="fa-solid fa-diagram-project"></i> Self-Healing Pipeline Lifecycle Tracker</div>
+      <div class="pipeline-container">
+        <div class="pipeline-step active" id="step1">
+          <div class="step-circle"><i class="fa-solid fa-eye"></i></div>
+          <div class="step-label">1. Standby</div>
+        </div>
+        <div class="pipeline-step" id="step2">
+          <div class="step-circle"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div class="step-label">2. Anomaly</div>
+        </div>
+        <div class="pipeline-step" id="step3">
+          <div class="step-circle"><i class="fa-solid fa-brain"></i></div>
+          <div class="step-label">3. ML Detection</div>
+        </div>
+        <div class="pipeline-step" id="step4">
+          <div class="step-circle"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <div class="step-label">4. AI RCA</div>
+        </div>
+        <div class="pipeline-step" id="step5">
+          <div class="step-circle"><i class="fa-solid fa-gears"></i></div>
+          <div class="step-label">5. Decision</div>
+        </div>
+        <div class="pipeline-step" id="step6">
+          <div class="step-circle"><i class="fa-solid fa-rotate"></i></div>
+          <div class="step-label">6. Self-Healing</div>
+        </div>
+        <div class="pipeline-step" id="step7">
+          <div class="step-circle"><i class="fa-solid fa-notes-medical"></i></div>
+          <div class="step-label">7. Verification</div>
+        </div>
+        <div class="pipeline-step" id="step8">
+          <div class="step-circle"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="step-label">8. Completed</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main 2-Column Section: AI RCA + Fault Injector -->
+    <div class="grid-2">
+      
+      <!-- Left Column: Gemini AI RCA & Controls -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Gemini AI Root Cause Analysis -->
+        <div class="section-box">
+          <div class="section-title"><i class="fa-solid fa-sparkles"></i> Google Gemini AI Root Cause Analysis (RCA)</div>
+          <div class="rca-box" id="rcaBox">
+            <strong>Diagnostic Status:</strong> <span id="rcaProvider">Gemini 3.6 Flash</span><br>
+            <p id="rcaText" style="margin-top: 6px;">Monitoring active system telemetry across CPU, Memory, Disk, and Network channels...</p>
+          </div>
+          <div class="button-group">
+            <button class="btn-action primary" onclick="triggerSelfHealing()"><i class="fa-solid fa-heart-pulse"></i> START SELF-HEALING</button>
+            <button class="btn-action" onclick="fetchAiDiagnosis()"><i class="fa-solid fa-rotate-right"></i> Refresh RCA</button>
+          </div>
+        </div>
+
+        <!-- Fault Injection Controls -->
+        <div class="section-box">
+          <div class="section-title"><i class="fa-solid fa-bug"></i> Fault Injection & Anomaly Simulator</div>
+          <div class="button-group">
+            <button class="btn-action danger" onclick="injectFault('CPU')"><i class="fa-solid fa-fire"></i> Inject CPU Spike</button>
+            <button class="btn-action danger" onclick="injectFault('MEMORY')"><i class="fa-solid fa-memory"></i> Inject Memory Leak</button>
+            <button class="btn-action danger" onclick="injectFault('LATENCY')"><i class="fa-solid fa-network-wired"></i> Inject Network Latency</button>
+            <button class="btn-action danger" onclick="injectFault('CRASH')"><i class="fa-solid fa-skull"></i> Inject Module Crash</button>
+            <button class="btn-action" onclick="resetCluster()"><i class="fa-solid fa-arrows-rotate"></i> Reset Cluster</button>
+          </div>
+        </div>
+
+        <!-- What-If Traffic Simulator -->
+        <div class="section-box">
+          <div class="section-title"><i class="fa-solid fa-sliders"></i> What-If Traffic Scale Simulator</div>
+          <div style="display: flex; gap: 14px; align-items: center;">
+            <input type="range" id="trafficRange" min="0" max="200" value="50" style="flex: 1;" oninput="document.getElementById('trafficVal').innerText = '+' + this.value + '%'">
+            <span id="trafficVal" style="font-family: 'JetBrains Mono'; font-weight: 700; width: 50px;">+50%</span>
+            <button class="btn-action" onclick="runWhatIfSimulation()"><i class="fa-solid fa-calculator"></i> Simulate Impact</button>
+          </div>
+          <div id="whatIfResult" style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
+            Simulate hypothetical traffic spikes to predict CPU load and dynamic VM scaling bounds.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: AI Operations Copilot & VM Cluster -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- AI Copilot Chat -->
+        <div class="section-box">
+          <div class="section-title"><i class="fa-solid fa-robot"></i> AURA-HEAL AI Operations Copilot</div>
+          <div class="chat-box" id="chatBox">
+            <div class="chat-msg ai">Hello! I am your AI Operations Copilot. How can I assist with cluster observability?</div>
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <input type="text" id="chatInput" style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid var(--card-border); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 12px;" placeholder="Ask copilot about cluster health..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+            <button class="btn-action primary" style="padding: 8px 14px;" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+        </div>
+
+        <!-- VM Instances Grid -->
+        <div class="section-box">
+          <div class="section-title"><i class="fa-solid fa-server"></i> Simulated VM Cluster (<span id="vmCount">12</span> Instances)</div>
+          <div class="vm-grid" id="vmGrid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Healing Logs Table -->
+    <div class="section-box">
+      <div class="section-title"><i class="fa-solid fa-list-check"></i> System Audit & Healing Logs</div>
+      <div style="max-height: 250px; overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Timestamp</th>
+              <th>Prediction</th>
+              <th>Remediation Action</th>
+              <th>Node</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody">
+            <tr><td colspan="6" style="text-align: center; color: var(--text-dim);">Connecting to backend...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let getBackendUrl = () => document.getElementById('backendUrlInput').value.trim() || 'http://127.0.0.1:5001';
+    let pollInterval = null;
+
+    async function connectBackend() {
+      const url = getBackendUrl();
+      try {
+        const res = await fetch(`${url}/api/v1/health`);
+        if (res.ok) {
+          const data = await res.json();
+          setSystemStatus(false, 'SYSTEM HEALTHY');
+          fetchDashboardData();
+        } else {
+          setSystemStatus(true, 'BACKEND ERROR');
+        }
+      } catch (err) {
+        setSystemStatus(true, 'SERVER UNREACHABLE');
+      }
+    }
+
+    function setSystemStatus(isAnomaly, text) {
+      const badge = document.getElementById('systemStatusBadge');
+      const badgeText = document.getElementById('systemStatusText');
+      badgeText.innerText = text;
+      if (isAnomaly) {
+        badge.classList.add('anomaly');
+      } else {
+        badge.classList.remove('anomaly');
+      }
+    }
+
+    async function fetchDashboardData() {
+      const url = getBackendUrl();
+      try {
+        const resM = await fetch(`${url}/api/v1/metrics/current`);
+        if (resM.ok) {
+          const dataM = await resM.json();
+          updateMetricsUI(dataM.metrics);
+        }
+
+        const resS = await fetch(`${url}/api/v1/system/status`);
+        if (resS.ok) {
+          const dataS = await resS.json();
+          setSystemStatus(dataS.is_anomaly, dataS.system_status);
+        }
+
+        const resV = await fetch(`${url}/api/v1/instances`);
+        if (resV.ok) {
+          const vmsData = await resV.json();
+          // API returns {value: [...], Count: n} or plain array
+          const vmList = Array.isArray(vmsData) ? vmsData : (vmsData.value || vmsData.instances || []);
+          updateVmsUI(vmList);
+        }
+
+        const resL = await fetch(`${url}/api/v1/logs`);
+        if (resL.ok) {
+          const dataL = await resL.json();
+          updateLogsUI(dataL.logs || []);
+        }
+      } catch (e) {
+        console.error('Failed to fetch dashboard data:', e);
+      }
+    }
+
+    function updateMetricsUI(m) {
+      if (!m) return;
+      const cpu = parseFloat(m.cpu || m.cpu_usage || 0);
+      const mem = parseFloat(m.memory || m.memory_usage || 0);
+      const disk = parseFloat(m.disk || m.disk_usage || 0);
+      const lat = parseFloat(m.latency || m.response_time_ms || 0);
+
+      document.getElementById('valCpu').innerText = cpu.toFixed(1) + '%';
+      const barCpu = document.getElementById('barCpu');
+      barCpu.style.width = Math.min(100, cpu) + '%';
+      barCpu.className = 'metric-bar-fill' + (cpu > 75 ? ' danger' : '');
+
+      document.getElementById('valMemory').innerText = mem.toFixed(1) + '%';
+      const barMem = document.getElementById('barMemory');
+      barMem.style.width = Math.min(100, mem) + '%';
+      barMem.className = 'metric-bar-fill' + (mem > 75 ? ' danger' : '');
+
+      document.getElementById('valDisk').innerText = disk.toFixed(1) + '%';
+      const barDisk = document.getElementById('barDisk');
+      barDisk.style.width = Math.min(100, disk) + '%';
+      barDisk.className = 'metric-bar-fill' + (disk > 85 ? ' danger' : '');
+
+      document.getElementById('valLatency').innerText = lat.toFixed(0) + ' ms';
+      const barLat = document.getElementById('barLatency');
+      barLat.style.width = Math.min(100, lat / 5) + '%';
+      barLat.className = 'metric-bar-fill' + (lat > 300 ? ' danger' : '');
+    }
+
+    function updateVmsUI(vms) {
+      const grid = document.getElementById('vmGrid');
+      document.getElementById('vmCount').innerText = vms.length;
+      grid.innerHTML = vms.map(vm => `
+        <div class="vm-card ${vm.status !== 'Running' ? 'unhealthy' : ''}">
+          <div class="vm-header">
+            <span class="vm-id">${vm.id}</span>
+            <span class="vm-badge ${vm.status !== 'Running' ? 'critical' : ''}">${vm.status}</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted);">
+            CPU: ${vm.cpu}% | RAM: ${vm.memory}% | IP: ${vm.ip}
+          </div>
+          <button class="btn-action" style="padding: 4px 10px; font-size: 10px; align-self: flex-start;" onclick="healSingleVm('${vm.id}')">
+            <i class="fa-solid fa-screwdriver-wrench"></i> Heal VM
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function updateLogsUI(logs) {
+      const tbody = document.getElementById('logsTableBody');
+      if (!logs.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-dim);">No healing logs recorded.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = logs.map(l => `
+        <tr>
+          <td>#${l.id || 1}</td>
+          <td>${l.time || l.timestamp || ''}</td>
+          <td><span style="color: ${l.prediction === 'Anomaly' ? 'var(--danger)' : 'var(--success)'}; font-weight: 600;">${l.prediction || 'Normal'}</span></td>
+          <td>${l.action || 'No Action'}</td>
+          <td>${l.node || 'Cluster'}</td>
+          <td><span style="color: var(--success); font-weight: 600;">${l.status || 'RESOLVED'}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    async function injectFault(type) {
+      const url = getBackendUrl();
+      setPipelineStage(2);
+      try {
+        const res = await fetch(`${url}/api/v1/inject`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ type })
+        });
+        const data = await res.json();
+        setSystemStatus(true, `ANOMALY: ${data.fault_type}`);
+        fetchDashboardData();
+        fetchAiDiagnosis();
+      } catch (err) {
+        alert('Failed to inject fault: ' + err);
+      }
+    }
+
+    async function fetchAiDiagnosis() {
+      const url = getBackendUrl();
+      setPipelineStage(4);
+      try {
+        const res = await fetch(`${url}/api/v1/ai/diagnosis`);
+        const data = await res.json();
+        document.getElementById('rcaProvider').innerText = data.provider || 'Gemini 3.6 Flash';
+        document.getElementById('rcaText').innerText = data.diagnosis || 'All systems operating within nominal limits.';
+      } catch (e) {
+        document.getElementById('rcaText').innerText = 'AI diagnosis temporarily unavailable. System telemetry monitored.';
+      }
+    }
+
+    async function triggerSelfHealing() {
+      const url = getBackendUrl();
+      setPipelineStage(6);
+      try {
+        const res = await fetch(`${url}/api/v1/heal`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ status: 'Anomaly' })
+        });
+        const data = await res.json();
+        setPipelineStage(8);
+        setSystemStatus(false, 'SYSTEM HEALTHY');
+        fetchDashboardData();
+      } catch (err) {
+        alert('Self-healing failed: ' + err);
+      }
+    }
+
+    async function healSingleVm(vmId) {
+      const url = getBackendUrl();
+      try {
+        await fetch(`${url}/api/v1/instances/${vmId}/heal`, { method: 'POST' });
+        fetchDashboardData();
+      } catch (e) {
+        alert('Failed to heal VM: ' + e);
+      }
+    }
+
+    async function resetCluster() {
+      await triggerSelfHealing();
+    }
+
+    async function runWhatIfSimulation() {
+      const url = getBackendUrl();
+      const inc = parseFloat(document.getElementById('trafficRange').value);
+      try {
+        const res = await fetch(`${url}/api/v1/traffic/what-if`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ increase_percent: inc })
+        });
+        const data = await res.json();
+        const sim = data.simulation;
+        document.getElementById('whatIfResult').innerHTML = `
+          <strong>Predicted CPU:</strong> ${sim.predicted_cpu}% | 
+          <strong>Recommended Action:</strong> <span style="color: var(--accent-cyan); font-weight: 700;">${sim.recommended_action}</span>
+        `;
+      } catch (e) {
+        alert('Simulation failed: ' + e);
+      }
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      const chatBox = document.getElementById('chatBox');
+      chatBox.innerHTML += `<div class="chat-msg user">${msg}</div>`;
+      input.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      const url = getBackendUrl();
+      try {
+        const res = await fetch(`${url}/api/v1/ai/chat`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ message: msg })
+        });
+        const data = await res.json();
+        chatBox.innerHTML += `<div class="chat-msg ai">${data.reply || 'All nodes operating normally.'}</div>`;
+      } catch (e) {
+        chatBox.innerHTML += `<div class="chat-msg ai">Unable to connect to AI Copilot.</div>`;
+      }
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function setPipelineStage(stageNum) {
+      for (let i = 1; i <= 8; i++) {
+        const el = document.getElementById(`step${i}`);
+        if (!el) continue;
+        if (i < stageNum) {
+          el.className = 'pipeline-step completed';
+        } else if (i === stageNum) {
+          el.className = 'pipeline-step active';
+        } else {
+          el.className = 'pipeline-step';
+        }
+      }
+    }
+
+    connectBackend();
+    pollInterval = setInterval(fetchDashboardData, 3000);
+  </script>
+
+</body>
+</html>

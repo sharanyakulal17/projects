@@ -1,0 +1,1661 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website Monitoring</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #0b1120;
+      color: #e5edf8;
+      min-height: 100vh;
+    }
+
+    header {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 24px;
+      background: #111c30;
+      border-bottom: 1px solid #263650;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .menu-toggle {
+      width: 40px;
+      height: 40px;
+      border: 1px solid #344761;
+      border-radius: 8px;
+      background: #091323;
+      color: #e5edf8;
+      font-size: 20px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .menu-toggle:hover {
+      background: #18395d;
+      border-color: #5aa5f8;
+    }
+
+    .back-button {
+      border: 1px solid #344761;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #091323;
+      color: #d9e7ff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .back-button:hover {
+      background: #18395d;
+      border-color: #5aa5f8;
+    }
+
+    .brand {
+      font-size: 21px;
+      font-weight: bold;
+      color: #61b7ff;
+    }
+
+    #connectionStatus {
+      color: #91a3bd;
+      font-size: 14px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 0 minmax(0, 1fr);
+      min-height: calc(100vh - 72px);
+      transition: grid-template-columns 0.25s ease;
+    }
+
+    .layout.menu-open {
+      grid-template-columns: 240px minmax(0, 1fr);
+    }
+
+    aside {
+      grid-column: 1;
+      grid-row: 1;
+      position: sticky;
+      top: 72px;
+      align-self: start;
+      height: calc(100vh - 72px);
+      width: 0;
+      min-width: 0;
+      background: #101a2c;
+      padding: 0;
+      border-right: 0;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      overflow-x: hidden;
+      overflow-y: auto;
+      transition: width 0.25s ease, opacity 0.2s ease, padding 0.2s ease;
+    }
+
+    .layout.menu-open aside {
+      width: 100%;
+      padding: 22px 12px;
+      border-right: 1px solid #263650;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    aside h3 {
+      font-size: 12px;
+      color: #8396b4;
+      margin: 0 12px 16px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      padding: 12px 12px;
+      margin-bottom: 7px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #aabbd3;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item::before {
+      content: "•";
+      font-size: 16px;
+      color: #5d7aa5;
+      line-height: 1;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: #18395d;
+      color: #75c4ff;
+      border-color: rgba(96, 161, 229, 0.45);
+      box-shadow: inset 0 0 0 1px rgba(96, 161, 229, 0.2);
+    }
+
+    .nav-item:hover::before,
+    .nav-item.active::before {
+      color: #75c4ff;
+    }
+
+    main {
+      grid-column: 2;
+      grid-row: 1;
+      padding: 25px;
+      min-width: 0;
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #91a3bd;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .panel {
+      background: #111c30;
+      border: 1px solid #263650;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      min-width: 0;
+    }
+
+    .section-title {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .url-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 13px;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      background: #091323;
+      color: white;
+      border: 1px solid #344761;
+      padding: 13px;
+      border-radius: 7px;
+      font-size: 15px;
+    }
+
+    input:focus {
+      outline: 2px solid #1684e8;
+      outline-offset: 1px;
+    }
+
+    button.action {
+      background: #1684e8;
+      color: white;
+      border: none;
+      padding: 13px 17px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button.action:hover {
+      background: #0871cf;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .browser-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: #091323;
+      padding: 10px;
+      border: 1px solid #344761;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .browser-bar input {
+      padding: 9px;
+    }
+
+    .browser-bar button {
+      white-space: nowrap;
+      padding: 10px 12px;
+    }
+
+    .website-frame {
+      width: 100%;
+      height: 560px;
+      display: block;
+      background: white;
+      border: 1px solid #344761;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+    }
+
+    /* DASHBOARD METRICS CARDS */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .metric-label {
+      color: #91a3bd;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: 23px;
+      font-weight: bold;
+      overflow-wrap: anywhere;
+      line-height: 1.2;
+    }
+
+    .metric-card {
+      position: relative;
+      background: linear-gradient(180deg, #121f35 0%, #111c30 100%);
+      border: 1px solid #263650;
+      border-radius: 12px;
+      padding: 18px 18px 16px;
+      min-width: 0;
+      box-shadow: 0 8px 20px rgba(4, 10, 20, 0.2);
+    }
+
+    .metric-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, #1684e8, #61b7ff);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .metric-card--status {
+      min-height: 140px;
+    }
+
+    .dashboard-summary {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .summary-panel {
+      background: #111c30;
+      border: 1px solid #263650;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .summary-list {
+      list-style: none;
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .summary-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(9, 19, 35, 0.8);
+      border: 1px solid #263650;
+      border-radius: 8px;
+      color: #d9e7ff;
+    }
+
+    .summary-list span:first-child {
+      color: #91a3bd;
+    }
+
+    .message {
+      margin-top: 12px;
+      color: #a8bdd8;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .green {
+      color: #4ade80;
+    }
+
+    .yellow {
+      color: #facc15;
+    }
+
+    .red {
+      color: #fb7185;
+    }
+
+    .muted {
+      color: #91a3bd;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .log-entry {
+      padding: 12px 0;
+      border-bottom: 1px solid #263650;
+      overflow-wrap: anywhere;
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    @media (max-width: 800px) {
+      aside h3 {
+        display: block;
+      }
+
+      .nav-item {
+        width: 100%;
+        white-space: normal;
+        margin-bottom: 7px;
+      }
+
+      main {
+        padding: 15px;
+      }
+
+      .url-row {
+        flex-direction: column;
+      }
+
+      .metrics {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .dashboard-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .browser-bar {
+        flex-wrap: wrap;
+      }
+
+      .browser-bar input {
+        flex-basis: 60%;
+      }
+
+      .website-frame {
+        height: 480px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="header-left">
+      <button
+        id="menuToggle"
+        class="menu-toggle"
+        type="button"
+        aria-label="Toggle main menu"
+        aria-controls="mainMenu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
+      <button
+        id="backToDashboard"
+        class="back-button"
+        type="button"
+        hidden
+      >
+        ← Back to Main Dashboard
+      </button>
+      <div class="brand">Website Monitoring</div>
+    </div>
+    <div id="connectionStatus">Ready to monitor</div>
+  </header>
+
+  <div id="appLayout" class="layout">
+
+    <aside id="mainMenu" aria-label="Main navigation" aria-hidden="true">
+
+      <h3>MAIN MENU</h3>
+
+      <button class="nav-item" data-page="metrics">
+        Dashboard Metrics
+      </button>
+
+      <button class="nav-item" data-page="healing">
+        Self-Healing
+      </button>
+
+      <button class="nav-item" data-page="instances">
+        VM / Instances
+      </button>
+
+      <button class="nav-item" data-page="logs">
+        Logs
+      </button>
+
+    </aside>
+
+    <main>
+
+      <!-- WEBSITE MONITORING PAGE -->
+
+      <section id="page-monitoring" class="page">
+
+        <h1>Website Monitoring</h1>
+
+        <p class="subtitle">
+          Open a website in the preview and check its public availability.
+        </p>
+
+        <!-- CONNECT WEBSITE -->
+
+        <section class="panel">
+
+          <h2 class="section-title">
+            Connect a Website
+          </h2>
+
+          <p class="muted">
+            Enter a public website URL starting with https:// or http://.
+          </p>
+
+          <div class="url-row">
+
+            <input
+              id="websiteUrl"
+              type="url"
+              placeholder="https://example.com"
+              value="https://example.com"
+              autocomplete="url"
+              aria-label="Website URL"
+            >
+
+            <button
+              id="startButton"
+              class="action"
+              onclick="startMonitoring()"
+            >
+              Open Website &amp; Start Monitoring
+            </button>
+
+          </div>
+
+          <p
+            id="mainMessage"
+            class="message"
+            aria-live="polite"
+          >
+            Enter a URL and start monitoring.
+          </p>
+
+        </section>
+
+
+        <!-- WEBSITE PREVIEW -->
+
+        <section class="panel">
+
+          <h2 class="section-title">
+            Website Preview
+          </h2>
+
+          <div class="browser-bar">
+
+            <span aria-hidden="true">🌐</span>
+
+            <input
+              id="browserAddress"
+              value="https://example.com"
+              aria-label="Preview website address"
+            >
+
+            <button
+              class="action"
+              onclick="openEnteredAddress()"
+            >
+              Go
+            </button>
+
+            <button
+              class="action"
+              onclick="openInNewTab()"
+            >
+              New Tab
+            </button>
+
+          </div>
+
+          <iframe
+            id="websiteFrame"
+            class="website-frame"
+            title="External website preview"
+            referrerpolicy="no-referrer"
+            sandbox="allow-forms allow-scripts allow-same-origin allow-popups"
+          ></iframe>
+
+          <p
+            id="frameMessage"
+            class="message"
+            aria-live="polite"
+          >
+            Loading the default example website.
+          </p>
+
+        </section>
+
+
+      </section>
+
+
+      <!-- DASHBOARD METRICS PAGE -->
+
+      <section id="page-metrics" class="page hidden">
+
+        <h1>Dashboard Metrics</h1>
+
+        <p class="subtitle">
+          Website check results collected by this page.
+        </p>
+
+
+        <!-- MOVED FROM WEBSITE MONITORING PAGE -->
+
+        <div class="metrics">
+
+          <section class="metric-card metric-card--status">
+
+            <div class="metric-label">
+              Availability Check
+            </div>
+
+            <div
+              id="availability"
+              class="metric-value"
+            >
+              Not checked
+            </div>
+
+          </section>
+
+
+          <section class="metric-card metric-card--status">
+
+            <div class="metric-label">
+              Response Time
+            </div>
+
+            <div
+              id="responseTime"
+              class="metric-value"
+            >
+              --
+            </div>
+
+          </section>
+
+
+          <section class="metric-card metric-card--status">
+
+            <div class="metric-label">
+              Last Check
+            </div>
+
+            <div
+              id="lastCheck"
+              class="metric-value"
+            >
+              --
+            </div>
+
+          </section>
+
+          <section class="metric-card metric-card--status">
+
+            <div class="metric-label">
+              Health Status
+            </div>
+
+            <div class="metric-value muted">
+              Waiting
+            </div>
+
+          </section>
+
+        </div>
+
+
+        <div class="dashboard-summary">
+
+          <section class="summary-panel">
+
+            <h2 class="section-title">
+              Current Monitoring Summary
+            </h2>
+
+            <p
+              id="metricsSummary"
+              class="message"
+            >
+              No checks recorded yet.
+            </p>
+
+          </section>
+
+          <section class="summary-panel">
+
+            <h2 class="section-title">
+              Snapshot
+            </h2>
+
+            <ul class="summary-list">
+              <li>
+                <span>URL</span>
+                <strong id="summaryUrl">--</strong>
+              </li>
+              <li>
+                <span>Outcome</span>
+                <strong id="summaryOutcome">--</strong>
+              </li>
+              <li>
+                <span>Latency</span>
+                <strong id="summaryLatency">--</strong>
+              </li>
+            </ul>
+
+          </section>
+
+        </div>
+
+      </section>
+
+
+      <!-- SELF HEALING PAGE -->
+
+      <section id="page-healing" class="page hidden">
+
+        <h1>Self-Healing</h1>
+
+        <p class="subtitle">
+          Latest recovery and health status.
+        </p>
+
+        <section class="panel">
+
+          <h2 class="section-title">Recovery Summary</h2>
+
+          <p class="message">
+            Recovered:
+            <span id="healingRecoveredValue">
+              Loading recovery status...
+            </span>
+          </p>
+
+          <p class="message">
+            Health:
+            <span id="healingHealthValue">
+              Unknown
+            </span>
+          </p>
+
+        </section>
+
+      </section>
+
+
+      <!-- VM / INSTANCES PAGE -->
+
+      <section id="page-instances" class="page hidden">
+
+        <h1>VM / Instances</h1>
+
+        <p class="subtitle">
+          Virtual machine status will be supplied by the backend.
+        </p>
+
+        <section class="panel">
+
+          <h2 class="section-title">
+            Instances
+          </h2>
+
+          <p class="message">
+            No live infrastructure information is connected yet.
+          </p>
+
+        </section>
+
+      </section>
+
+
+      <!-- LOGS PAGE -->
+
+      <section id="page-logs" class="page hidden">
+
+        <h1>Logs</h1>
+
+        <p class="subtitle">
+          Website monitoring check history for this browser session.
+        </p>
+
+        <section class="panel">
+
+          <div id="logList">
+
+            <p class="message">
+              No monitoring checks recorded yet.
+            </p>
+
+          </div>
+
+        </section>
+
+      </section>
+
+
+    </main>
+
+  </div>
+
+
+  <script>
+
+    const urlInput =
+      document.getElementById("websiteUrl");
+
+    const browserAddress =
+      document.getElementById("browserAddress");
+
+    const websiteFrame =
+      document.getElementById("websiteFrame");
+
+    const startButton =
+      document.getElementById("startButton");
+
+    const menuToggle =
+      document.getElementById("menuToggle");
+
+    const appLayout =
+      document.getElementById("appLayout");
+
+    const mainMenu =
+      document.getElementById("mainMenu");
+
+    const backToDashboard =
+      document.getElementById("backToDashboard");
+
+
+    let monitoringTimer = null;
+
+    let currentUrl = "";
+
+    let lastCheckData = null;
+
+    const monitoringLogs = [];
+
+
+    function validateUrl(value) {
+
+      try {
+
+        const url =
+          new URL(value.trim());
+
+        if (
+          !["http:", "https:"].includes(url.protocol)
+        ) {
+          return null;
+        }
+
+        return url;
+
+      } catch {
+
+        return null;
+
+      }
+
+    }
+
+
+    function setText(
+      id,
+      value,
+      className = ""
+    ) {
+
+      const element =
+        document.getElementById(id);
+
+      element.textContent = value;
+
+      element.className = className;
+
+    }
+
+
+    function addLog(message) {
+
+      const entry = {
+
+        time:
+          new Date().toLocaleString(),
+
+        url:
+          currentUrl,
+
+        message:
+          message
+
+      };
+
+
+      monitoringLogs.unshift(entry);
+
+
+      if (monitoringLogs.length > 100) {
+
+        monitoringLogs.pop();
+
+      }
+
+
+      renderLogs();
+
+    }
+
+
+    async function loadHealingStatus() {
+
+      const recoveredValue =
+        document.getElementById(
+          "healingRecoveredValue"
+        );
+
+      const healthValue =
+        document.getElementById(
+          "healingHealthValue"
+        );
+
+
+      recoveredValue.textContent =
+        "Loading recovery status...";
+
+      healthValue.textContent =
+        "Unknown";
+
+
+      try {
+
+        const response =
+          await fetch(
+            "http://127.0.0.1:5001/api/v1/healing/status",
+            {
+              headers: {
+                "Accept": "application/json"
+              },
+              cache: "no-store"
+            }
+          );
+
+        if (!response.ok) {
+
+          throw new Error(
+            "Backend returned HTTP " +
+            response.status
+          );
+
+        }
+
+        const data =
+          await response.json();
+
+        const healing =
+          data.healing;
+
+        if (
+          data.status !== "success" ||
+          !healing
+        ) {
+
+          throw new Error(
+            "Backend returned an invalid healing status."
+          );
+
+        }
+
+        const faultType =
+          healing.fault_type
+            ? String(healing.fault_type)
+            : "";
+
+        const verification =
+          String(
+            healing.verification || ""
+          ).toLowerCase();
+
+        if (
+          healing.completed_at ||
+          healing.completed
+        ) {
+
+          recoveredValue.textContent =
+            faultType || "Recovery completed";
+
+        } else if (healing.active && faultType) {
+
+          recoveredValue.textContent =
+            faultType +
+            " recovery in progress";
+
+        } else {
+
+          recoveredValue.textContent =
+            "No recovery recorded";
+
+        }
+
+        if (
+          verification === "healthy" ||
+          verification === "unhealthy"
+        ) {
+
+          healthValue.textContent =
+            verification === "healthy"
+              ? "Healthy"
+              : "Unhealthy";
+
+        } else if (healing.active) {
+
+          healthValue.textContent =
+            "Pending verification";
+
+        } else {
+
+          healthValue.textContent =
+            "Not verified";
+
+        }
+
+      } catch (error) {
+
+        recoveredValue.textContent =
+          "Status unavailable: " +
+          error.message;
+
+        healthValue.textContent =
+          "Unknown";
+
+      }
+
+    }
+
+
+    function renderLogs() {
+
+      const logList =
+        document.getElementById("logList");
+
+
+      logList.replaceChildren();
+
+
+      if (monitoringLogs.length === 0) {
+
+        const empty =
+          document.createElement("p");
+
+        empty.className =
+          "message";
+
+        empty.textContent =
+          "No monitoring checks recorded yet.";
+
+        logList.appendChild(empty);
+
+        return;
+
+      }
+
+
+      monitoringLogs.forEach((entry) => {
+
+        const item =
+          document.createElement("div");
+
+        item.className =
+          "log-entry";
+
+
+        const time =
+          document.createElement("strong");
+
+        time.textContent =
+          entry.time;
+
+
+        const url =
+          document.createElement("p");
+
+        url.className =
+          "message";
+
+        url.textContent =
+          entry.url;
+
+
+        const message =
+          document.createElement("p");
+
+        message.className =
+          "message";
+
+        message.textContent =
+          entry.message;
+
+
+        item.append(
+          time,
+          url,
+          message
+        );
+
+
+        logList.appendChild(item);
+
+      });
+
+    }
+
+
+    function openWebsite(url) {
+
+      currentUrl =
+        url.href;
+
+      browserAddress.value =
+        currentUrl;
+
+
+      setText(
+        "frameMessage",
+        "Attempting to load the website. Some websites block embedded previews.",
+        "yellow"
+      );
+
+
+      websiteFrame.src =
+        currentUrl;
+
+    }
+
+
+    function openEnteredAddress() {
+
+      const url =
+        validateUrl(
+          browserAddress.value
+        );
+
+
+      if (!url) {
+
+        setText(
+          "frameMessage",
+          "Enter a valid HTTP or HTTPS URL.",
+          "red"
+        );
+
+        return;
+
+      }
+
+
+      urlInput.value =
+        url.href;
+
+
+      startMonitoring();
+
+    }
+
+
+    function openInNewTab() {
+
+      if (!currentUrl) {
+
+        setText(
+          "frameMessage",
+          "Open a website first.",
+          "yellow"
+        );
+
+        return;
+
+      }
+
+
+      window.open(
+        currentUrl,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+    }
+
+
+    async function checkWebsite() {
+
+      if (!currentUrl) return;
+
+
+      const urlBeingChecked =
+        currentUrl;
+
+
+      const started =
+        performance.now();
+
+
+      setText(
+        "availability",
+        "Checking...",
+        "yellow"
+      );
+
+
+      try {
+
+        const response =
+          await fetch(
+            urlBeingChecked,
+            {
+              method: "GET",
+              mode: "cors",
+              cache: "no-store",
+              signal:
+                AbortSignal.timeout(10000)
+            }
+          );
+
+
+        const elapsed =
+          Math.round(
+            performance.now() - started
+          );
+
+
+        // Prevent stale results
+        // when URL has changed.
+
+        if (
+          urlBeingChecked !== currentUrl
+        ) {
+          return;
+        }
+
+
+        const statusMessage =
+          "Browser request succeeded. HTTP status: " +
+          response.status;
+
+
+        lastCheckData = {
+
+          url:
+            urlBeingChecked,
+
+          time:
+            new Date().toLocaleTimeString(),
+
+          responseTime:
+            elapsed,
+
+          result:
+            response.ok
+              ? "Reachable"
+              : "HTTP " + response.status
+
+        };
+
+
+        setText(
+          "responseTime",
+          elapsed + " ms"
+        );
+
+
+        setText(
+          "lastCheck",
+          lastCheckData.time
+        );
+
+
+        if (response.ok) {
+
+          setText(
+            "availability",
+            "Reachable",
+            "green"
+          );
+
+        } else {
+
+          setText(
+            "availability",
+            "HTTP " + response.status,
+            "yellow"
+          );
+
+        }
+
+
+        addLog(
+          statusMessage +
+          " — " +
+          elapsed +
+          " ms"
+        );
+
+      } catch (error) {
+
+        const elapsed =
+          Math.round(
+            performance.now() - started
+          );
+
+
+        if (
+          urlBeingChecked !== currentUrl
+        ) {
+          return;
+        }
+
+
+        lastCheckData = {
+
+          url:
+            urlBeingChecked,
+
+          time:
+            new Date().toLocaleTimeString(),
+
+          responseTime:
+            elapsed,
+
+          result:
+            "Unverified"
+
+        };
+
+
+        setText(
+          "responseTime",
+          elapsed + " ms"
+        );
+
+
+        setText(
+          "lastCheck",
+          lastCheckData.time
+        );
+
+
+        setText(
+          "availability",
+          "Unverified",
+          "yellow"
+        );
+
+
+        const message =
+          "The browser could not read the response. Possible causes include " +
+          "CORS restrictions, network failure, timeout, or server issues. " +
+          "The website is not necessarily down.";
+
+
+        addLog(
+          "Availability could not be verified. " +
+          error.message
+        );
+
+      }
+
+
+      updateMetricsSummary();
+
+    }
+
+
+    function updateMetricsSummary() {
+
+      const summary =
+        document.getElementById(
+          "metricsSummary"
+        );
+
+      const summaryUrl =
+        document.getElementById("summaryUrl");
+
+      const summaryOutcome =
+        document.getElementById("summaryOutcome");
+
+      const summaryLatency =
+        document.getElementById("summaryLatency");
+
+
+      if (!lastCheckData) {
+
+        summary.textContent =
+          "No checks recorded yet.";
+
+        if (summaryUrl) summaryUrl.textContent = "--";
+        if (summaryOutcome) summaryOutcome.textContent = "--";
+        if (summaryLatency) summaryLatency.textContent = "--";
+
+        return;
+
+      }
+
+
+      summary.textContent =
+        "URL: " +
+        lastCheckData.url +
+
+        " | Result: " +
+        lastCheckData.result +
+
+        " | Response time: " +
+        lastCheckData.responseTime +
+        " ms" +
+
+        " | Last check: " +
+        lastCheckData.time;
+
+      summaryUrl.textContent =
+        lastCheckData.url;
+
+      summaryOutcome.textContent =
+        lastCheckData.result;
+
+      summaryLatency.textContent =
+        lastCheckData.responseTime + " ms";
+
+    }
+
+
+    async function startMonitoring() {
+
+      const url =
+        validateUrl(
+          urlInput.value
+        );
+
+
+      if (!url) {
+
+        setText(
+          "mainMessage",
+          "Please enter a valid URL starting with http:// or https://.",
+          "red"
+        );
+
+        return;
+
+      }
+
+
+      startButton.disabled =
+        true;
+
+
+      try {
+
+        urlInput.value =
+          url.href;
+
+
+        openWebsite(url);
+
+
+        setText(
+          "mainMessage",
+          "Website opened or attempted. Starting availability checks.",
+          "green"
+        );
+
+
+        document.getElementById(
+          "connectionStatus"
+        ).textContent =
+          "Monitoring started";
+
+
+        if (monitoringTimer) {
+
+          clearInterval(
+            monitoringTimer
+          );
+
+          monitoringTimer =
+            null;
+
+        }
+
+
+        await checkWebsite();
+
+
+        // Check again every 15 seconds.
+
+        monitoringTimer =
+          setInterval(
+            checkWebsite,
+            15000
+          );
+
+      } finally {
+
+        startButton.disabled =
+          false;
+
+      }
+
+    }
+
+
+    /*
+      SIDEBAR NAVIGATION
+    */
+
+    function updateMenuState() {
+
+      const isOpen =
+        appLayout.classList.contains(
+          "menu-open"
+        );
+
+      menuToggle.setAttribute(
+        "aria-expanded",
+        String(isOpen)
+      );
+
+      mainMenu.setAttribute(
+        "aria-hidden",
+        String(!isOpen)
+      );
+
+      menuToggle.textContent = "☰";
+
+    }
+
+    function closeMenu() {
+
+      appLayout.classList.remove(
+        "menu-open"
+      );
+
+      updateMenuState();
+
+    }
+
+    function showPage(
+      pageName,
+      activeButton = null,
+      closeMenuAfterNavigation = true
+    ) {
+
+      document
+        .querySelectorAll(".page")
+        .forEach((page) => {
+
+          page.classList.toggle(
+            "hidden",
+            page.id !== "page-" + pageName
+          );
+
+        });
+
+      document
+        .querySelectorAll(".nav-item")
+        .forEach((item) => {
+
+          item.classList.toggle(
+            "active",
+            item === activeButton
+          );
+
+        });
+
+      backToDashboard.hidden =
+        pageName === "monitoring";
+
+      if (closeMenuAfterNavigation) {
+        closeMenu();
+      }
+
+    }
+
+
+    updateMenuState();
+
+    menuToggle.addEventListener(
+      "click",
+      () => {
+
+        if (!appLayout.classList.contains("menu-open")) {
+          appLayout.classList.add("menu-open");
+        }
+
+        updateMenuState();
+
+      }
+    );
+
+    backToDashboard.addEventListener(
+      "click",
+      () => {
+
+        showPage("monitoring");
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+
+      }
+    );
+
+    document
+      .querySelectorAll(".nav-item")
+      .forEach((button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const pageName =
+              button.dataset.page;
+
+            showPage(pageName, button, false);
+
+            if (pageName === "healing") {
+              loadHealingStatus();
+            }
+
+          }
+        );
+
+      });
+
+
+    /*
+      DEFAULT WEBSITE
+    */
+
+    openWebsite(
+      new URL(
+        "https://example.com"
+      )
+    );
+
+  </script>
+
+</body>
+</html>

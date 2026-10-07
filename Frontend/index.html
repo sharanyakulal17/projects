@@ -1,0 +1,3686 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Website Monitoring</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+
+            width: 100%;
+            height: 100%;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #0b1020;
+            color: #e8ecf7;
+
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        .app {
+
+            display: grid;
+
+            grid-template-columns:
+                0 minmax(0, 1fr);
+
+            width: 100%;
+
+            height: 100vh;
+
+            overflow: hidden;
+
+            transition:
+                grid-template-columns 0.2s ease;
+
+        }
+
+        .app.menu-open {
+
+            grid-template-columns:
+                250px minmax(0, 1fr);
+
+        }
+
+
+        /* =====================================
+           SIDEBAR
+        ===================================== */
+
+        .sidebar {
+
+            width: 250px;
+
+            grid-column: 1;
+
+            grid-row: 1;
+
+            min-width: 0;
+
+            height: 100vh;
+
+            background: #11182d;
+
+            padding: 0;
+
+            border-right: 0;
+
+            opacity: 0;
+
+            visibility: hidden;
+
+            pointer-events: none;
+
+            overflow-x: hidden;
+
+            overflow-y: auto;
+
+            transition:
+                width 0.2s ease,
+                opacity 0.2s ease,
+                padding 0.2s ease;
+
+        }
+
+        .app.menu-open .sidebar {
+
+            width: 100%;
+
+            padding: 22px 15px;
+
+            border-right:
+                1px solid #26304a;
+
+            opacity: 1;
+
+            visibility: visible;
+
+            pointer-events: auto;
+
+        }
+
+        .brand {
+
+            font-size: 22px;
+
+            font-weight: bold;
+
+            padding:
+                10px 12px 25px;
+
+            color: #ffffff;
+
+        }
+
+        .nav-title {
+
+            font-size: 11px;
+
+            color: #7f8aa5;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+
+            padding:
+                0 12px 10px;
+
+        }
+
+        .nav-item {
+
+            padding: 13px 12px;
+
+            margin-bottom: 6px;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+
+            color: #aeb8d0;
+
+            transition: 0.2s;
+
+        }
+
+        .nav-item:hover {
+
+            background: #1a2340;
+
+            color: white;
+
+        }
+
+        .nav-item.active {
+
+            background: #24345f;
+
+            color: white;
+
+        }
+
+
+        /* =====================================
+           MAIN
+        ===================================== */
+
+        .main {
+
+            grid-column: 2;
+
+            grid-row: 1;
+
+            display: flex;
+
+            flex-direction: column;
+
+            min-width: 0;
+
+            width: auto;
+
+            height: 100vh;
+
+        }
+
+        .topbar {
+
+            height: 70px;
+
+            background: #11182d;
+
+            border-bottom:
+                1px solid #26304a;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content:
+                flex-start;
+
+            gap: 16px;
+
+            padding:
+                0 25px;
+
+        }
+
+        .topbar-title {
+
+            font-size: 20px;
+
+            font-weight: bold;
+
+            margin-right: auto;
+
+        }
+
+        .menu-toggle {
+
+            width: 40px;
+
+            height: 40px;
+
+            display: inline-flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 5px;
+
+            border: 1px solid #344761;
+
+            border-radius: 8px;
+
+            background: #091323;
+
+            cursor: pointer;
+
+        }
+
+        .menu-toggle span {
+
+            display: block;
+
+            width: 18px;
+
+            height: 2px;
+
+            border-radius: 2px;
+
+            background: #e5edf8;
+
+        }
+
+        .menu-toggle:hover {
+
+            background: #18395d;
+
+            border-color: #5aa5f8;
+
+        }
+
+        .dashboard-button {
+
+            border: 1px solid #344761;
+
+            border-radius: 8px;
+
+            padding: 9px 12px;
+
+            background: #091323;
+
+            color: #d9e7ff;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+        }
+
+        .dashboard-button:hover {
+
+            background: #18395d;
+
+            border-color: #5aa5f8;
+
+        }
+
+        .connection-status {
+
+            padding:
+                8px 14px;
+
+            border-radius: 20px;
+
+            background: #18233c;
+
+            color: #8fa2ca;
+
+            font-size: 13px;
+
+        }
+
+        .content {
+
+            flex: 1;
+
+            overflow-y: auto;
+
+            padding: 30px;
+
+        }
+
+        .page {
+
+            max-width: 1400px;
+
+            margin: auto;
+
+        }
+
+        .hidden {
+
+            display: none !important;
+
+        }
+
+        h1 {
+
+            font-size: 30px;
+
+            margin-bottom: 8px;
+
+        }
+
+        .subtitle {
+
+            color: #8994ae;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        /* =====================================
+           PANELS
+        ===================================== */
+
+        .panel {
+
+            background: #11182d;
+
+            border:
+                1px solid #26304a;
+
+            border-radius: 12px;
+
+            padding: 22px;
+
+            margin-bottom: 22px;
+
+        }
+
+        .section-title {
+
+            font-size: 18px;
+
+            margin-bottom: 18px;
+
+        }
+
+
+        /* =====================================
+           INPUT
+        ===================================== */
+
+        .input-row {
+
+            display: flex;
+
+            gap: 12px;
+
+        }
+
+        input {
+
+            flex: 1;
+
+            background: #0b1020;
+
+            border:
+                1px solid #34405f;
+
+            color: white;
+
+            padding:
+                13px 15px;
+
+            border-radius: 8px;
+
+            outline: none;
+
+            font-size: 14px;
+
+        }
+
+        input:focus {
+
+            border-color: #5275d9;
+
+        }
+
+        button {
+
+            border: none;
+
+            border-radius: 8px;
+
+            padding:
+                12px 18px;
+
+            background: #3156c7;
+
+            color: white;
+
+            cursor: pointer;
+
+            font-weight: bold;
+
+        }
+
+        button:hover {
+
+            background: #4168db;
+
+        }
+
+        .secondary-button {
+
+            background: #202b49;
+
+        }
+
+        .secondary-button:hover {
+
+            background: #2b395d;
+
+        }
+
+        .message {
+
+            color: #9aa6c0;
+
+            line-height: 1.6;
+
+        }
+
+
+        /* =====================================
+           WEBSITE PREVIEW
+        ===================================== */
+
+        .browser-bar {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-bottom: 15px;
+
+        }
+
+        .browser-address {
+
+            flex: 1;
+
+            background: #0b1020;
+
+            border:
+                1px solid #34405f;
+
+            border-radius: 7px;
+
+            padding:
+                10px 13px;
+
+            color: #aeb8d0;
+
+            font-size: 13px;
+
+        }
+
+        .website-frame-container {
+
+            height: 550px;
+
+            background: #080c17;
+
+            border:
+                1px solid #2b3653;
+
+            border-radius: 10px;
+
+            overflow: hidden;
+
+            position: relative;
+
+        }
+
+        iframe {
+
+            width: 100%;
+            height: 100%;
+
+            border: none;
+
+            background: white;
+
+        }
+
+        .frame-message {
+
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            transform:
+                translate(-50%, -50%);
+
+            color: #7f8aa5;
+
+            text-align: center;
+
+            width: 80%;
+
+            pointer-events: none;
+
+        }
+
+
+        /* =====================================
+           METRICS
+        ===================================== */
+
+        .metrics-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 18px;
+
+            margin-bottom: 18px;
+
+        }
+
+        .metric-card {
+
+            background: #11182d;
+
+            border:
+                1px solid #26304a;
+
+            border-radius: 12px;
+
+            padding: 20px;
+
+        }
+
+        .metric-label {
+
+            font-size: 13px;
+
+            color: #7f8aa5;
+
+            margin-bottom: 10px;
+
+        }
+
+        .metric-value {
+
+            font-size: 25px;
+
+            font-weight: bold;
+
+            color: white;
+
+        }
+
+        .wide-card {
+
+            grid-column: span 2;
+
+        }
+
+
+        /* =====================================
+           LOGS
+        ===================================== */
+
+        .log-item {
+
+            background: #0b1020;
+
+            border:
+                1px solid #26304a;
+
+            padding: 14px;
+
+            border-radius: 8px;
+
+            margin-bottom: 10px;
+
+        }
+
+        .log-time {
+
+            color: #6f7b98;
+
+            font-size: 12px;
+
+        }
+
+        .log-message {
+
+            color: #dce2f0;
+
+            font-size: 14px;
+
+        }
+
+
+        /* =====================================
+           INSTANCE TABLE
+        ===================================== */
+
+        .instance-table {
+
+            width: 100%;
+
+            border-collapse:
+                collapse;
+
+            min-width: 800px;
+
+        }
+
+        .instance-table th {
+
+            text-align: left;
+
+            padding: 14px 10px;
+
+            border-bottom:
+                1px solid #26304a;
+
+            color: #7f8aa5;
+
+            font-size: 13px;
+
+        }
+
+        .instance-table td {
+
+            padding: 15px 10px;
+
+            border-bottom:
+                1px solid #1d2740;
+
+        }
+
+        .instance-row {
+
+            cursor: pointer;
+
+        }
+
+        .instance-row:hover {
+
+            background: #151f38;
+
+        }
+
+        /* =====================================
+           RESPONSIVE
+        ===================================== */
+
+        @media (max-width: 1000px) {
+
+            .metrics-grid {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+
+            }
+
+        }
+
+        @media (max-width: 700px) {
+
+            .sidebar {
+
+                width: 200px;
+
+            }
+
+            .content {
+
+                padding: 18px;
+
+            }
+
+            .input-row {
+
+                flex-direction: column;
+
+            }
+
+            .metrics-grid {
+
+                grid-template-columns: 1fr;
+
+            }
+
+            .wide-card {
+
+                grid-column: span 1;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+    <!-- =====================================
+         SIDEBAR
+    ===================================== -->
+
+    <aside
+        id="mainMenu"
+        class="sidebar"
+        aria-label="Main navigation"
+        aria-hidden="true"
+    >
+
+        <div class="brand">
+            Website Monitoring
+        </div>
+
+        <div class="nav-title">
+            MAIN MENU
+        </div>
+
+        <div
+            class="nav-item"
+            data-page="metrics"
+        >
+            Dashboard Metrics
+        </div>
+
+        <div
+            class="nav-item"
+            data-page="healing"
+        >
+            Self-Healing
+        </div>
+
+        <div
+            class="nav-item"
+            data-page="instances"
+        >
+            VM / Instances
+        </div>
+
+        <div
+            class="nav-item"
+            data-page="logs"
+        >
+            Logs
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================
+         MAIN
+    ===================================== -->
+
+    <main class="main">
+
+
+        <header class="topbar">
+
+            <button
+                id="menuToggle"
+                class="menu-toggle"
+                type="button"
+                aria-label="Toggle main menu"
+                aria-controls="mainMenu"
+                aria-expanded="false"
+            >
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+
+            <div class="topbar-title">
+                Website Monitoring
+            </div>
+
+            <button
+                id="backToDashboard"
+                class="dashboard-button hidden"
+                type="button"
+            >
+                Back to Main Dashboard
+            </button>
+
+            <div
+                id="connectionStatus"
+                class="connection-status"
+            >
+                Not Monitoring
+            </div>
+
+        </header>
+
+
+        <div class="content">
+
+
+            <!-- =================================
+                 WEBSITE MONITORING
+            ================================= -->
+
+            <section
+                id="page-monitoring"
+                class="page"
+            >
+
+                <h1>
+                    Website Monitoring
+                </h1>
+
+                <p class="subtitle">
+                    Enter a website URL and monitor
+                    its availability and response time.
+                </p>
+
+
+                <section class="panel">
+
+                    <h2 class="section-title">
+                        Connect a Website
+                    </h2>
+
+                    <div class="input-row">
+
+                        <input
+                            type="text"
+                            id="websiteUrl"
+                            placeholder="https://example.com"
+                        >
+
+                        <button id="startButton">
+                            Open Website & Start Monitoring
+                        </button>
+
+                    </div>
+
+                    <p
+                        id="mainMessage"
+                        class="message"
+                        style="margin-top:15px;"
+                    >
+                        Enter a website URL to start monitoring.
+                    </p>
+
+                </section>
+
+
+                <section class="panel">
+
+                    <h2 class="section-title">
+                        Website Preview
+                    </h2>
+
+                    <div class="browser-bar">
+
+                        <input
+                            id="browserAddress"
+                            class="browser-address"
+                            type="text"
+                            placeholder="Website address"
+                        >
+
+                        <button id="goButton">
+                            Go
+                        </button>
+
+                        <button
+                            id="newTabButton"
+                            class="secondary-button"
+                        >
+                            New Tab
+                        </button>
+
+                    </div>
+
+
+                    <div
+                        class="website-frame-container"
+                    >
+
+                        <iframe
+                            id="websiteFrame"
+                            src=""
+                            title="Website Preview"
+                        ></iframe>
+
+                        <div
+                            id="frameMessage"
+                            class="frame-message"
+                        >
+                            Enter a website above
+                            to load the preview.
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+            </section>
+
+
+            <!-- =================================
+                 DASHBOARD
+            ================================= -->
+
+            <section
+                id="page-metrics"
+                class="page hidden"
+            >
+
+                <h1>
+                    Dashboard
+                </h1>
+
+                <p class="subtitle">
+                    Live website status and system metrics from the backend.
+                </p>
+
+
+                <div class="metrics-grid">
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            CPU Usage
+                        </div>
+
+                        <div
+                            id="systemCpu"
+                            class="metric-value"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Memory Usage
+                        </div>
+
+                        <div
+                            id="systemMemory"
+                            class="metric-value"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Disk Usage
+                        </div>
+
+                        <div
+                            id="systemDisk"
+                            class="metric-value"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Network I/O
+                        </div>
+
+                        <div
+                            id="systemNetwork"
+                            class="metric-value"
+                            style="font-size:15px;"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Availability
+                        </div>
+
+                        <div
+                            id="availability"
+                            class="metric-value"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Response Time
+                        </div>
+
+                        <div
+                            id="responseTime"
+                            class="metric-value"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Monitoring Status
+                        </div>
+
+                        <div
+                            id="dashboardStatus"
+                            class="metric-value"
+                        >
+                            Not Monitoring
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Last Check
+                        </div>
+
+                        <div
+                            id="lastCheck"
+                            class="metric-value"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card wide-card">
+
+                        <div class="metric-label">
+                            Monitored Website
+                        </div>
+
+                        <div
+                            id="dashboardUrl"
+                            class="metric-value"
+                            style="font-size:17px;"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+                <section class="panel">
+
+                    <h2 class="section-title">
+                        Backend System Status
+                    </h2>
+
+                    <p
+                        id="backendMetricsStatus"
+                        class="message"
+                    >
+                        Backend metrics have not been loaded yet.
+                    </p>
+
+                </section>
+
+
+                <section class="panel">
+
+                    <h2 class="section-title">
+                        Website Monitoring Summary
+                    </h2>
+
+                    <p
+                        id="metricsSummary"
+                        class="message"
+                    >
+                        No website monitoring data available yet.
+                    </p>
+
+                </section>
+
+
+                <section class="panel">
+
+                    <h2 class="section-title">
+                        Monitoring Information
+                    </h2>
+
+                    <p class="message">
+                        Website availability and response
+                        time are checked periodically.
+                    </p>
+
+                </section>
+
+            </section>
+
+
+            <!-- =================================
+                 SELF HEALING
+            ================================= -->
+
+            <section
+                id="page-healing"
+                class="page hidden"
+            >
+
+                <h1>
+                    Self-Healing
+                </h1>
+
+                <p class="subtitle">
+                    Latest recovery and health status.
+                </p>
+
+
+                <section class="panel">
+
+                    <h2 class="section-title">
+                        Recovery Summary
+                    </h2>
+
+                    <p class="message">
+                        Recovered:
+                        <span id="healingRecoveredValue">
+                            Loading recovery status...
+                        </span>
+                    </p>
+
+                    <p class="message">
+                        Health:
+                        <span id="healingHealthValue">
+                            Unknown
+                        </span>
+                    </p>
+
+                </section>
+
+            </section>
+
+
+            <!-- =================================
+                 VM / INSTANCES
+            ================================= -->
+
+            <section
+                id="page-instances"
+                class="page hidden"
+            >
+
+                <h1>
+                    VM / Instances
+                </h1>
+
+                <p class="subtitle">
+                    View the actual instances reported
+                    by the backend.
+                </p>
+
+
+                <!-- SUMMARY -->
+
+                <div class="metrics-grid">
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Total Instances
+                        </div>
+
+                        <div
+                            id="totalInstances"
+                            class="metric-value"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Running
+                        </div>
+
+                        <div
+                            id="runningInstances"
+                            class="metric-value"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Stopped
+                        </div>
+
+                        <div
+                            id="stoppedInstances"
+                            class="metric-value"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Unhealthy
+                        </div>
+
+                        <div
+                            id="unhealthyInstances"
+                            class="metric-value"
+                        >
+                            --
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- INSTANCE LIST -->
+
+                <section class="panel">
+
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:
+                                space-between;
+                            align-items:center;
+                            margin-bottom:20px;
+                            gap:15px;
+                        "
+                    >
+
+                        <h2
+                            class="section-title"
+                            style="margin:0;"
+                        >
+                            Instances
+                        </h2>
+
+
+                        <button
+                            id="refreshInstancesButton"
+                            class="secondary-button"
+                        >
+                            Refresh
+                        </button>
+
+                    </div>
+
+
+                    <div
+                        id="instanceLoading"
+                        class="message"
+                        style="margin-bottom:15px;"
+                    >
+                        No instance data loaded.
+                    </div>
+
+
+                    <div
+                        style="overflow-x:auto;"
+                    >
+
+                        <table
+                            class="instance-table"
+                        >
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>
+                                        Instance
+                                    </th>
+
+                                    <th>
+                                        Status
+                                    </th>
+
+                                    <th>
+                                        CPU
+                                    </th>
+
+                                    <th>
+                                        Memory
+                                    </th>
+
+                                    <th>
+                                        Network
+                                    </th>
+
+                                    <th>
+                                        Health
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody
+                                id="instanceTableBody"
+                            >
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+
+                <!-- SELECTED INSTANCE -->
+
+                <section class="panel">
+
+                    <h2 class="section-title">
+                        Selected Instance
+                    </h2>
+
+
+                    <div
+                        id="selectedInstanceDetails"
+                        class="message"
+                    >
+                        Select an instance to view
+                        its actual details.
+                    </div>
+
+                </section>
+
+
+                <!-- SCALE OUT -->
+
+                <section class="panel">
+
+                    <h2 class="section-title">
+                        Scale-Out Activity
+                    </h2>
+
+
+                    <div
+                        id="scaleOutStatus"
+                        class="message"
+                    >
+                        No scale-out information
+                        has been received from the backend.
+                    </div>
+
+                </section>
+
+            </section>
+
+
+            <!-- =================================
+                 LOGS
+            ================================= -->
+
+            <section
+                id="page-logs"
+                class="page hidden"
+            >
+
+                <h1>
+                    Logs
+                </h1>
+
+                <p class="subtitle">
+                    View monitoring and system activity.
+                </p>
+
+
+                <div class="metrics-grid">
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Total Logs
+                        </div>
+
+                        <div
+                            id="totalLogs"
+                            class="metric-value"
+                        >
+                            0
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Monitoring Checks
+                        </div>
+
+                        <div
+                            id="monitoringLogCount"
+                            class="metric-value"
+                        >
+                            0
+                        </div>
+
+                    </div>
+
+
+                    <div class="metric-card">
+
+                        <div class="metric-label">
+                            Issues
+                        </div>
+
+                        <div
+                            id="issueLogCount"
+                            class="metric-value"
+                        >
+                            0
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+                <section class="panel">
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:
+                                space-between;
+                            align-items:center;
+                            margin-bottom:20px;
+                        "
+                    >
+
+                        <h2
+                            class="section-title"
+                            style="margin:0;"
+                        >
+                            Activity Logs
+                        </h2>
+
+
+                        <button
+                            id="clearLogsButton"
+                            class="secondary-button"
+                        >
+                            Clear Browser Logs
+                        </button>
+
+                    </div>
+
+
+                    <div id="logList">
+
+                        <p class="message">
+                            No logs available yet.
+                        </p>
+
+                    </div>
+
+                    <p
+                        id="logsBackendStatus"
+                        class="message"
+                        aria-live="polite"
+                    ></p>
+
+                </section>
+
+            </section>
+
+
+        </div>
+
+    </main>
+
+</div>
+
+
+
+<script>
+
+
+/* ==========================================
+   CONFIGURATION
+========================================== */
+
+const API_BASE_URL =
+    window.location.protocol === "file:"
+        ? "http://127.0.0.1:5001/api/v1"
+        : window.location.port === "5001"
+            ? window.location.origin + "/api/v1"
+            : window.location.protocol +
+              "//" +
+              window.location.hostname +
+              ":5001/api/v1";
+
+
+/* ==========================================
+   BASIC ELEMENTS
+========================================== */
+
+const urlInput =
+    document.getElementById(
+        "websiteUrl"
+    );
+
+const browserAddress =
+    document.getElementById(
+        "browserAddress"
+    );
+
+const websiteFrame =
+    document.getElementById(
+        "websiteFrame"
+    );
+
+const frameMessage =
+    document.getElementById(
+        "frameMessage"
+    );
+
+const startButton =
+    document.getElementById(
+        "startButton"
+    );
+
+const goButton =
+    document.getElementById(
+        "goButton"
+    );
+
+const newTabButton =
+    document.getElementById(
+        "newTabButton"
+    );
+
+const mainMessage =
+    document.getElementById(
+        "mainMessage"
+    );
+
+const connectionStatus =
+    document.getElementById(
+        "connectionStatus"
+    );
+
+const backToDashboard =
+    document.getElementById(
+        "backToDashboard"
+    );
+
+const menuToggle =
+    document.getElementById(
+        "menuToggle"
+    );
+
+const mainMenu =
+    document.getElementById(
+        "mainMenu"
+    );
+
+/* ==========================================
+   STATE
+========================================== */
+
+let monitoringTimer = null;
+
+let currentUrl = "";
+
+let lastCheckData = null;
+
+let monitoringLogs = [];
+
+let backendLogs = [];
+
+let backendMetricsTimer = null;
+
+
+/* ==========================================
+   HELPER
+========================================== */
+
+function setText(
+    id,
+    value
+) {
+
+    const element =
+        document.getElementById(id);
+
+    if (element) {
+
+        element.textContent =
+            value;
+
+    }
+
+}
+
+
+/* ==========================================
+   URL VALIDATION
+========================================== */
+
+function validateUrl(
+    value
+) {
+
+    try {
+
+        const url =
+            new URL(value);
+
+        return (
+            url.protocol === "http:" ||
+            url.protocol === "https:"
+        );
+
+    }
+
+    catch {
+
+        return false;
+
+    }
+
+}
+
+
+/* ==========================================
+   LOGS
+========================================== */
+
+function addLog(
+    message,
+    type = "monitoring",
+    title = "Monitoring Event"
+) {
+
+    monitoringLogs.unshift({
+
+        time:
+            new Date()
+                .toLocaleString(),
+
+        message:
+            message,
+
+        type:
+            type,
+
+        title:
+            title
+
+    });
+
+    renderLogs();
+
+}
+
+
+function normalizeBackendLog(entry) {
+
+    const status =
+        String(entry.status || "").toUpperCase();
+
+    const title =
+        entry.prediction ||
+        entry.anomaly ||
+        entry.title ||
+        "Backend Event";
+
+    const message =
+        entry.action ||
+        entry.message ||
+        entry.raw ||
+        entry.error ||
+        "Backend event recorded.";
+
+    return {
+        title: String(title),
+        time: String(
+            entry.timestamp ||
+            entry.time ||
+            "--"
+        ),
+        message: String(message),
+        type:
+            status === "ACTIVE" ||
+            status === "FAILED"
+                ? "issue"
+                : "backend"
+    };
+
+}
+
+
+async function loadBackendLogs() {
+
+    const statusElement =
+        document.getElementById(
+            "logsBackendStatus"
+        );
+
+    if (statusElement) {
+
+        statusElement.textContent =
+            "Loading backend logs...";
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_BASE_URL + "/logs",
+                {
+                    headers: {
+                        "Accept": "application/json"
+                    },
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Backend returned HTTP " +
+                response.status
+            );
+
+        }
+
+        const data =
+            await response.json();
+
+        if (
+            data.status !== "success" ||
+            !Array.isArray(data.logs)
+        ) {
+
+            throw new Error(
+                "Backend returned an invalid logs response."
+            );
+
+        }
+
+        backendLogs =
+            data.logs
+                .filter(
+                    entry =>
+                        entry &&
+                        typeof entry === "object"
+                )
+                .map(normalizeBackendLog);
+
+        if (statusElement) {
+
+            statusElement.textContent =
+                "Loaded " +
+                backendLogs.length +
+                " backend log(s).";
+
+        }
+
+        renderLogs();
+
+    } catch (error) {
+
+        if (statusElement) {
+
+            statusElement.textContent =
+                "Unable to load backend logs: " +
+                error.message;
+
+        }
+
+        renderLogs();
+
+    }
+
+}
+
+
+function renderLogs() {
+
+    const logList =
+        document.getElementById(
+            "logList"
+        );
+
+    if (!logList) {
+
+        return;
+
+    }
+
+
+    const allLogs =
+        monitoringLogs.concat(backendLogs);
+
+    setText(
+        "totalLogs",
+        allLogs.length
+    );
+
+
+    setText(
+        "monitoringLogCount",
+
+        monitoringLogs.filter(
+            log =>
+                log.type === "monitoring"
+        ).length
+    );
+
+
+    setText(
+        "issueLogCount",
+
+        monitoringLogs.filter(
+            log =>
+                log.type === "issue"
+        ).length +
+        backendLogs.filter(
+            log =>
+                log.type === "issue"
+        ).length
+    );
+
+
+    if (
+        allLogs.length === 0
+    ) {
+
+        logList.innerHTML = `
+            <p class="message">
+                No logs available yet.
+            </p>
+        `;
+
+        return;
+
+    }
+
+
+    logList.replaceChildren();
+
+    allLogs.forEach(
+        log => {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "log-item";
+
+            const heading =
+                document.createElement("div");
+
+            heading.style.display =
+                "flex";
+
+            heading.style.justifyContent =
+                "space-between";
+
+            heading.style.gap =
+                "15px";
+
+            heading.style.marginBottom =
+                "8px";
+
+            const title =
+                document.createElement("strong");
+
+            title.textContent =
+                log.title;
+
+            const time =
+                document.createElement("span");
+
+            time.className =
+                "log-time";
+
+            time.textContent =
+                log.time;
+
+            const message =
+                document.createElement("div");
+
+            message.className =
+                "log-message";
+
+            message.textContent =
+                log.message;
+
+            heading.append(title, time);
+            item.append(heading, message);
+            logList.appendChild(item);
+
+        }
+    );
+
+}
+
+
+/* ==========================================
+   OPEN WEBSITE
+========================================== */
+
+function openWebsite(
+    url
+) {
+
+    currentUrl =
+        url;
+
+    browserAddress.value =
+        url;
+
+    websiteFrame.src =
+        url;
+
+    frameMessage.textContent =
+        "Loading website...";
+
+    frameMessage.style.display =
+        "block";
+
+
+    setText(
+        "dashboardUrl",
+        url
+    );
+
+    setText(
+        "dashboardStatus",
+        "Monitoring"
+    );
+
+}
+
+
+/* ==========================================
+   WEBSITE CHECK
+========================================== */
+
+async function checkWebsite() {
+
+    if (!currentUrl) {
+
+        return;
+
+    }
+
+
+    const urlBeingChecked =
+        currentUrl;
+
+    const startTime =
+        performance.now();
+
+
+    try {
+
+        const response =
+            await fetch(
+                urlBeingChecked,
+                {
+                    method: "GET",
+                    mode: "cors",
+                    cache: "no-store",
+                    signal:
+                        AbortSignal.timeout(
+                            10000
+                        )
+                }
+            );
+
+
+        const responseTime =
+            Math.round(
+                performance.now() -
+                startTime
+            );
+
+
+        lastCheckData = {
+
+            url:
+                urlBeingChecked,
+
+            available:
+                response.ok,
+
+            responseTime:
+                responseTime,
+
+            status:
+                response.status,
+
+            time:
+                new Date()
+
+        };
+
+
+        setText(
+            "availability",
+            response.ok
+                ? "Available"
+                : "Unavailable"
+        );
+
+
+        setText(
+            "responseTime",
+            responseTime + " ms"
+        );
+
+
+        setText(
+            "lastCheck",
+            new Date()
+                .toLocaleTimeString()
+        );
+
+
+        setText(
+            "dashboardStatus",
+            response.ok
+                ? "Monitoring"
+                : "Issue Detected"
+        );
+
+
+        setText(
+            "metricsSummary",
+
+            response.ok
+                ? "The monitored website is reachable. Latest response time: "
+                  + responseTime
+                  + " ms."
+                : "The monitored website returned an unsuccessful HTTP response."
+
+        );
+
+
+        addLog(
+
+            "Website check completed. HTTP " +
+            response.status +
+            " | Response time: " +
+            responseTime +
+            " ms.",
+
+            "monitoring",
+
+            "Website Check"
+
+        );
+
+    }
+
+
+    catch (error) {
+
+        const responseTime =
+            Math.round(
+                performance.now() -
+                startTime
+            );
+
+
+        lastCheckData = {
+
+            url:
+                urlBeingChecked,
+
+            available:
+                false,
+
+            responseTime:
+                responseTime,
+
+            status:
+                null,
+
+            time:
+                new Date(),
+
+            error:
+                error.message
+
+        };
+
+
+        setText(
+            "availability",
+            "Unverified"
+        );
+
+
+        setText(
+            "responseTime",
+            responseTime + " ms"
+        );
+
+
+        setText(
+            "lastCheck",
+            new Date()
+                .toLocaleTimeString()
+        );
+
+
+        setText(
+            "dashboardStatus",
+            "Check Failed"
+        );
+
+
+        setText(
+            "metricsSummary",
+
+            "The browser could not verify the "
+            + "website directly. This does not by "
+            + "itself prove that the server is down."
+
+        );
+
+
+        addLog(
+
+            "Website could not be verified during "
+            + "the latest monitoring check.",
+
+            "issue",
+
+            "Monitoring Issue"
+
+        );
+
+    }
+
+}
+
+
+/* ==========================================
+   BACKEND SYSTEM METRICS
+========================================== */
+
+function formatMetricPercentage(value) {
+
+    const numericValue =
+        Number(value);
+
+    return Number.isFinite(numericValue)
+        ? numericValue.toFixed(1) + "%"
+        : "--";
+
+}
+
+
+function formatMetricBytes(value) {
+
+    const numericValue =
+        Number(value);
+
+    if (
+        !Number.isFinite(numericValue) ||
+        numericValue < 0
+    ) {
+
+        return "--";
+
+    }
+
+    if (numericValue < 1024) {
+
+        return numericValue + " B";
+
+    }
+
+    const units =
+        ["KB", "MB", "GB", "TB"];
+
+    let size =
+        numericValue / 1024;
+
+    let unitIndex = 0;
+
+    while (
+        size >= 1024 &&
+        unitIndex < units.length - 1
+    ) {
+
+        size /= 1024;
+        unitIndex += 1;
+
+    }
+
+    return size.toFixed(1) +
+        " " +
+        units[unitIndex];
+
+}
+
+
+async function loadBackendMetrics() {
+
+    const statusElement =
+        document.getElementById(
+            "backendMetricsStatus"
+        );
+
+    if (statusElement) {
+
+        statusElement.textContent =
+            "Loading live system metrics from backend...";
+
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                API_BASE_URL + "/metrics/current",
+                {
+                    headers: {
+                        "Accept": "application/json"
+                    },
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Backend returned HTTP " +
+                response.status
+            );
+
+        }
+
+        const data =
+            await response.json();
+
+        if (
+            data.status !== "success" ||
+            !data.metrics
+        ) {
+
+            throw new Error(
+                "Backend returned an invalid metrics response."
+            );
+
+        }
+
+        const metrics =
+            data.metrics;
+
+        setText(
+            "systemCpu",
+            formatMetricPercentage(metrics.cpu)
+        );
+
+        setText(
+            "systemMemory",
+            formatMetricPercentage(metrics.memory)
+        );
+
+        setText(
+            "systemDisk",
+            formatMetricPercentage(metrics.disk)
+        );
+
+        setText(
+            "systemNetwork",
+            formatMetricBytes(metrics.bytes_recv) +
+            " received / " +
+            formatMetricBytes(metrics.bytes_sent) +
+            " sent"
+        );
+
+        if (statusElement) {
+
+            statusElement.textContent =
+                "Connected to backend. Last updated " +
+                new Date().toLocaleTimeString() +
+                (data.injected
+                    ? " (fault-injected metrics)."
+                    : ".");
+
+        }
+
+    } catch (error) {
+
+        [
+            "systemCpu",
+            "systemMemory",
+            "systemDisk",
+            "systemNetwork"
+        ].forEach(
+            id => setText(id, "--")
+        );
+
+        if (statusElement) {
+
+            statusElement.textContent =
+                "Unable to load backend metrics: " +
+                error.message;
+
+        }
+
+    }
+
+}
+
+
+function startBackendMetricsRefresh() {
+
+    if (backendMetricsTimer) {
+
+        clearInterval(backendMetricsTimer);
+
+    }
+
+    loadBackendMetrics();
+
+    backendMetricsTimer =
+        setInterval(
+            loadBackendMetrics,
+            15000
+        );
+
+}
+
+
+/* ==========================================
+   START MONITORING
+========================================== */
+
+async function startMonitoring() {
+
+    const value =
+        urlInput.value.trim();
+
+
+    if (!validateUrl(value)) {
+
+        mainMessage.textContent =
+            "Please enter a valid URL.";
+
+        return;
+
+    }
+
+
+    openWebsite(value);
+
+
+    mainMessage.textContent =
+        "Website opened. Monitoring has started.";
+
+
+    connectionStatus.textContent =
+        "Monitoring";
+
+
+    if (monitoringTimer) {
+
+        clearInterval(
+            monitoringTimer
+        );
+
+    }
+
+
+    await checkWebsite();
+
+
+    monitoringTimer =
+        setInterval(
+            checkWebsite,
+            15000
+        );
+
+}
+
+
+/* ==========================================
+   SELF-HEALING STATUS
+========================================== */
+
+async function loadHealingStatus() {
+
+    const recoveredValue =
+        document.getElementById(
+            "healingRecoveredValue"
+        );
+
+    const healthValue =
+        document.getElementById(
+            "healingHealthValue"
+        );
+
+    if (!recoveredValue || !healthValue) {
+
+        return;
+
+    }
+
+
+    recoveredValue.textContent =
+        "Loading recovery status...";
+
+    healthValue.textContent =
+        "Unknown";
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_BASE_URL +
+                "/healing/status",
+                {
+                    headers: {
+                        "Accept": "application/json"
+                    },
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Backend returned HTTP " +
+                response.status
+            );
+
+        }
+
+        const data =
+            await response.json();
+
+        const healing =
+            data.healing;
+
+        if (
+            data.status !== "success" ||
+            !healing
+        ) {
+
+            throw new Error(
+                "Backend returned an invalid healing status."
+            );
+
+        }
+
+        const faultType =
+            healing.fault_type
+                ? String(healing.fault_type)
+                : "";
+
+        const verification =
+            String(
+                healing.verification || ""
+            ).toLowerCase();
+
+        if (
+            healing.completed_at ||
+            healing.completed
+        ) {
+
+            recoveredValue.textContent =
+                faultType || "Recovery completed";
+
+        } else if (healing.active && faultType) {
+
+            recoveredValue.textContent =
+                faultType +
+                " recovery in progress";
+
+        } else {
+
+            recoveredValue.textContent =
+                "No recovery recorded";
+
+        }
+
+        if (
+            verification === "healthy" ||
+            verification === "unhealthy"
+        ) {
+
+            healthValue.textContent =
+                verification === "healthy"
+                    ? "Healthy"
+                    : "Unhealthy";
+
+        } else if (healing.active) {
+
+            healthValue.textContent =
+                "Pending verification";
+
+        } else {
+
+            healthValue.textContent =
+                "Not verified";
+
+        }
+
+    } catch (error) {
+
+        recoveredValue.textContent =
+            "Status unavailable: " +
+            error.message;
+
+        healthValue.textContent =
+            "Unknown";
+
+    }
+
+}
+
+
+/* ==========================================
+   REAL BACKEND INSTANCE DATA
+========================================== */
+
+let backendInstances = [];
+
+
+/*
+    This function reads the response from:
+
+    GET /api/v1/instances
+
+    No fake instance values are created.
+*/
+
+async function loadInstances() {
+
+    const loading =
+        document.getElementById(
+            "instanceLoading"
+        );
+
+
+    if (loading) {
+
+        loading.textContent =
+            "Loading instance data from backend...";
+
+    }
+
+
+    try {
+
+
+        const response =
+            await fetch(
+
+                API_BASE_URL +
+                "/instances",
+
+                {
+                    method: "GET",
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    },
+                    cache: "no-store"
+                }
+
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+
+                "Backend returned HTTP " +
+                response.status
+
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        /*
+         * Accept common response structures.
+         *
+         * We do NOT create values if fields
+         * are missing.
+         */
+
+        if (Array.isArray(data)) {
+
+            backendInstances =
+                data;
+
+        }
+
+        else if (
+            Array.isArray(
+                data.instances
+            )
+        ) {
+
+            backendInstances =
+                data.instances;
+
+        }
+
+        else if (
+            Array.isArray(
+                data.data
+            )
+        ) {
+
+            backendInstances =
+                data.data;
+
+        }
+
+        else {
+
+            backendInstances = [];
+
+        }
+
+
+        renderBackendInstances();
+
+
+        if (loading) {
+
+            loading.textContent =
+
+                backendInstances.length > 0
+
+                    ? "Instance data loaded from backend."
+
+                    : "No instance data available from backend.";
+
+        }
+
+        return true;
+
+
+    }
+
+
+    catch (error) {
+
+
+        backendInstances = [];
+
+
+        renderBackendInstances();
+
+
+        if (loading) {
+
+            loading.textContent =
+
+                "Unable to load instance data from backend: "
+                + error.message;
+
+        }
+
+        return false;
+
+    }
+
+}
+
+
+/* ==========================================
+   GET ACTUAL FIELD
+========================================== */
+
+function getInstanceValue(
+    instance,
+    fields
+) {
+
+    for (
+        const field of fields
+    ) {
+
+        if (
+            instance[field] !==
+            undefined &&
+            instance[field] !==
+            null
+        ) {
+
+            return instance[field];
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
+/* ==========================================
+   FORMAT VALUE
+========================================== */
+
+function displayInstanceValue(
+    value,
+    suffix = ""
+) {
+
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+
+        return "--";
+
+    }
+
+
+    return String(value) +
+        suffix;
+
+}
+
+
+/* ==========================================
+   RENDER BACKEND INSTANCES
+========================================== */
+
+function renderBackendInstances() {
+
+    const tableBody =
+        document.getElementById(
+            "instanceTableBody"
+        );
+
+
+    if (!tableBody) {
+
+        return;
+
+    }
+
+
+    /*
+     * NO DATA
+     */
+
+    if (
+        backendInstances.length === 0
+    ) {
+
+        tableBody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    style="
+                        padding:25px;
+                        text-align:center;
+                        color:#8994ae;
+                    "
+                >
+
+                    No instance data available.
+
+                </td>
+
+            </tr>
+
+        `;
+
+
+        setText(
+            "totalInstances",
+            "0"
+        );
+
+
+        setText(
+            "runningInstances",
+            "0"
+        );
+
+
+        setText(
+            "stoppedInstances",
+            "0"
+        );
+
+
+        setText(
+            "unhealthyInstances",
+            "0"
+        );
+
+
+        return;
+
+    }
+
+
+    /*
+     * REAL SUMMARY
+     */
+
+    const statuses =
+        backendInstances.map(
+            instance =>
+                getInstanceValue(
+                    instance,
+                    [
+                        "status",
+                        "state",
+                        "instance_status"
+                    ]
+                )
+        );
+
+
+    const total =
+        backendInstances.length;
+
+
+    const running =
+        statuses.filter(
+            status =>
+                String(status)
+                    .toLowerCase()
+                    .includes("running")
+        ).length;
+
+
+    const stopped =
+        statuses.filter(
+            status =>
+                String(status)
+                    .toLowerCase()
+                    .includes("stopped")
+        ).length;
+
+
+    const unhealthy =
+        backendInstances.filter(
+            instance => {
+
+                const health =
+                    getInstanceValue(
+                        instance,
+                        [
+                            "health",
+                            "health_status",
+                            "instance_health"
+                        ]
+                    );
+
+
+                if (
+                    health === null
+                ) {
+
+                    return false;
+
+                }
+
+
+                const value =
+                    String(
+                        health
+                    ).toLowerCase();
+
+
+                return (
+                    value.includes(
+                        "unhealthy"
+                    ) ||
+                    value.includes(
+                        "critical"
+                    ) ||
+                    value.includes(
+                        "failed"
+                    )
+                );
+
+            }
+        ).length;
+
+
+    setText(
+        "totalInstances",
+        total
+    );
+
+
+    setText(
+        "runningInstances",
+        running
+    );
+
+
+    setText(
+        "stoppedInstances",
+        stopped
+    );
+
+
+    setText(
+        "unhealthyInstances",
+        unhealthy
+    );
+
+
+    /*
+     * TABLE
+     */
+
+    tableBody.innerHTML =
+
+        backendInstances
+            .map(
+                (
+                    instance,
+                    index
+                ) => {
+
+
+                    const id =
+                        getInstanceValue(
+                            instance,
+                            [
+                                "id",
+                                "instance_id",
+                                "instanceId",
+                                "name"
+                            ]
+                        );
+
+
+                    const status =
+                        getInstanceValue(
+                            instance,
+                            [
+                                "status",
+                                "state",
+                                "instance_status"
+                            ]
+                        );
+
+
+                    const cpu =
+                        getInstanceValue(
+                            instance,
+                            [
+                                "cpu",
+                                "cpu_usage",
+                                "cpu_percent",
+                                "cpu_utilization"
+                            ]
+                        );
+
+
+                    const memory =
+                        getInstanceValue(
+                            instance,
+                            [
+                                "memory",
+                                "memory_usage",
+                                "memory_percent",
+                                "memory_utilization"
+                            ]
+                        );
+
+
+                    const network =
+                        getInstanceValue(
+                            instance,
+                            [
+                                "network",
+                                "network_status",
+                                "network_state"
+                            ]
+                        );
+
+
+                    const health =
+                        getInstanceValue(
+                            instance,
+                            [
+                                "health",
+                                "health_status",
+                                "instance_health"
+                            ]
+                        );
+
+
+                    return `
+
+                        <tr
+                            class="instance-row"
+                            data-index="${index}"
+                        >
+
+                            <td>
+                                ${displayInstanceValue(id)}
+                            </td>
+
+                            <td>
+                                ${displayInstanceValue(status)}
+                            </td>
+
+                            <td>
+                                ${displayInstanceValue(cpu, "%")}
+                            </td>
+
+                            <td>
+                                ${displayInstanceValue(memory, "%")}
+                            </td>
+
+                            <td>
+                                ${displayInstanceValue(network)}
+                            </td>
+
+                            <td>
+                                ${displayInstanceValue(health)}
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+
+    /*
+     * CLICK INSTANCE
+     */
+
+    document
+        .querySelectorAll(
+            ".instance-row"
+        )
+        .forEach(
+            row => {
+
+                row.addEventListener(
+                    "click",
+                    function() {
+
+                        const index =
+                            Number(
+                                this.dataset.index
+                            );
+
+
+                        showBackendInstanceDetails(
+                            backendInstances[index]
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+/* ==========================================
+   INSTANCE DETAILS
+========================================== */
+
+function showBackendInstanceDetails(
+    instance
+) {
+
+    if (!instance) {
+
+        return;
+
+    }
+
+
+    const details =
+        document.getElementById(
+            "selectedInstanceDetails"
+        );
+
+
+    /*
+     * Display actual backend object.
+     *
+     * This means we don't invent missing
+     * values.
+     */
+
+    details.innerHTML = `
+
+        <div
+            style="
+                background:#0b1020;
+                border:1px solid #26304a;
+                border-radius:10px;
+                padding:20px;
+            "
+        >
+
+            <div
+                style="
+                    color:#7f8aa5;
+                    font-size:13px;
+                    margin-bottom:12px;
+                "
+            >
+                Backend Instance Data
+            </div>
+
+
+            <pre
+                style="
+                    white-space:pre-wrap;
+                    word-break:break-word;
+                    color:#e8ecf7;
+                    line-height:1.6;
+                    font-family:monospace;
+                "
+            >${JSON.stringify(
+                instance,
+                null,
+                2
+            )}</pre>
+
+        </div>
+
+    `;
+
+}
+
+
+/* ==========================================
+   NAVIGATION
+========================================== */
+
+document
+    .querySelectorAll(
+        ".nav-item"
+    )
+    .forEach(
+        item => {
+
+            item.addEventListener(
+                "click",
+                function() {
+
+
+                    const page =
+                        this.dataset.page;
+
+                    if (
+                        page !== "metrics" &&
+                        backendMetricsTimer
+                    ) {
+
+                        clearInterval(
+                            backendMetricsTimer
+                        );
+
+                        backendMetricsTimer = null;
+
+                    }
+
+                    backToDashboard.classList.remove(
+                        "hidden"
+                    );
+
+                    document
+                        .querySelectorAll(
+                            ".nav-item"
+                        )
+                        .forEach(
+                            nav =>
+                                nav.classList
+                                    .remove(
+                                        "active"
+                                    )
+                        );
+
+
+                    this.classList.add(
+                        "active"
+                    );
+
+
+                    document
+                        .querySelectorAll(
+                            ".page"
+                        )
+                        .forEach(
+                            section =>
+                                section.classList
+                                    .add(
+                                        "hidden"
+                                    )
+                        );
+
+
+                    const selectedPage =
+                        document.getElementById(
+                            "page-" +
+                            page
+                        );
+
+
+                    if (selectedPage) {
+
+                        selectedPage
+                            .classList
+                            .remove(
+                                "hidden"
+                            );
+
+                    }
+
+
+                    if (
+                        page ===
+                        "instances"
+                    ) {
+
+                        loadInstances();
+
+                    }
+
+
+                    if (
+                        page ===
+                        "healing"
+                    ) {
+
+                        loadHealingStatus();
+
+                    }
+
+
+                    if (
+                        page ===
+                        "metrics"
+                    ) {
+
+                        startBackendMetricsRefresh();
+
+                    }
+
+
+                    if (
+                        page ===
+                        "logs"
+                    ) {
+
+                        loadBackendLogs();
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+backToDashboard.addEventListener(
+    "click",
+    () => {
+
+        document
+            .querySelectorAll(".page")
+            .forEach(
+                section =>
+                    section.classList.toggle(
+                        "hidden",
+                        section.id !==
+                            "page-monitoring"
+                    )
+            );
+
+        document
+            .querySelectorAll(".nav-item")
+            .forEach(
+                nav =>
+                    nav.classList.remove(
+                        "active"
+                    )
+            );
+
+        backToDashboard.classList.add(
+            "hidden"
+        );
+
+        if (backendMetricsTimer) {
+
+            clearInterval(
+                backendMetricsTimer
+            );
+
+            backendMetricsTimer = null;
+
+        }
+
+        document
+            .querySelector(".app")
+            .classList.remove(
+                "menu-open"
+            );
+
+        menuToggle.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+
+        mainMenu.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+    }
+);
+
+
+menuToggle.addEventListener(
+    "click",
+    () => {
+
+        const isOpen =
+            document
+                .querySelector(".app")
+                .classList
+                .toggle("menu-open");
+
+        menuToggle.setAttribute(
+            "aria-expanded",
+            String(isOpen)
+        );
+
+        mainMenu.setAttribute(
+            "aria-hidden",
+            String(!isOpen)
+        );
+
+    }
+);
+
+
+/* ==========================================
+   BUTTONS
+========================================== */
+
+startButton.addEventListener(
+    "click",
+    startMonitoring
+);
+
+
+goButton.addEventListener(
+    "click",
+    () => {
+
+        const value =
+            browserAddress.value.trim();
+
+
+        if (
+            validateUrl(value)
+        ) {
+
+            openWebsite(value);
+
+        }
+
+    }
+);
+
+
+newTabButton.addEventListener(
+    "click",
+    () => {
+
+        if (currentUrl) {
+
+            window.open(
+                currentUrl,
+                "_blank"
+            );
+
+        }
+
+    }
+);
+
+
+document
+    .getElementById(
+        "refreshInstancesButton"
+    )
+    .addEventListener(
+        "click",
+        loadInstances
+    );
+
+document
+    .getElementById(
+        "clearLogsButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            monitoringLogs = [];
+
+            renderLogs();
+
+        }
+    );
+
+
+/* ==========================================
+   IFRAME
+========================================== */
+
+websiteFrame.addEventListener(
+    "load",
+    () => {
+
+        frameMessage.style.display =
+            "none";
+
+    }
+);
+
+
+/* ==========================================
+   ENTER KEY
+========================================== */
+
+urlInput.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Enter"
+        ) {
+
+            startMonitoring();
+
+        }
+
+    }
+);
+
+
+browserAddress.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Enter"
+        ) {
+
+            const value =
+                browserAddress.value.trim();
+
+
+            if (
+                validateUrl(value)
+            ) {
+
+                openWebsite(value);
+
+            }
+
+        }
+
+    }
+);
+
+
+/* ==========================================
+   INITIAL STATE
+========================================== */
+
+setText(
+    "dashboardStatus",
+    "Not Monitoring"
+);
+
+
+setText(
+    "dashboardUrl",
+    "--"
+);
+
+
+setText(
+    "availability",
+    "--"
+);
+
+
+setText(
+    "responseTime",
+    "--"
+);
+
+
+setText(
+    "lastCheck",
+    "--"
+);
+
+
+setText(
+    "totalInstances",
+    "0"
+);
+
+
+setText(
+    "runningInstances",
+    "0"
+);
+
+
+setText(
+    "stoppedInstances",
+    "0"
+);
+
+
+setText(
+    "unhealthyInstances",
+    "0"
+);
+
+
+renderLogs();
+
+
+</script>
+
+</body>
+
+</html>
